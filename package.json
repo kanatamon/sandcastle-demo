@@ -1,0 +1,16 @@
+{
+  "name": "sandcastle-demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "sandcastle": "npx tsx .sandcastle/main.mts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@ai-hero/sandcastle": "^0.5.6"
+  }
+}
