@@ -19,6 +19,12 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
 # This keeps UID 1000 so that --userns=keep-id (Podman) and
 # --user 1000:1000 (Docker) map to the correct home directory owner.
 RUN usermod -d /home/agent -m -l agent node
+# Sandcastle runs Docker with --user <hostUid>:<hostGid>, which on macOS is
+# typically 501:20 — a UID with no /etc/passwd entry inside the container.
+# HOME is still resolved to /home/agent (owned by UID 1000), so any user
+# must be able to write there (e.g. to create .gitconfig and lock files).
+RUN chmod o+w /home/agent && \
+    git config --system --add safe.directory '*'
 USER agent
 
 # Install Claude Code CLI
@@ -31,5 +37,4 @@ WORKDIR /home/agent
 
 # In worktree sandbox mode, Sandcastle bind-mounts the git worktree at /home/agent/workspace
 # and overrides the working directory to /home/agent/workspace at container start.
-# Structure your Dockerfile so that /home/agent/workspace can serve as the project root.
 ENTRYPOINT ["sleep", "infinity"]
