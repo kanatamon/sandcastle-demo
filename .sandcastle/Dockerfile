@@ -25,10 +25,12 @@ RUN usermod -d /home/agent -m -l agent node
 # must be able to write there (e.g. to create .gitconfig and lock files).
 RUN chmod o+w /home/agent && \
     git config --system --add safe.directory '*'
+ENV HOME=/home/agent
 USER agent
 
 # Install Claude Code CLI
-RUN curl -fsSL https://claude.ai/install.sh | bash
+RUN curl -fsSL https://claude.ai/install.sh | bash && \
+    chmod -R o+w /home/agent/.claude
 
 # Add Claude to PATH
 ENV PATH="/home/agent/.local/bin:$PATH"
