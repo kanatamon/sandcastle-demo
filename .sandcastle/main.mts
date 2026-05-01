@@ -25,6 +25,57 @@ import * as sandcastle from "@ai-hero/sandcastle";
 import { docker } from "@ai-hero/sandcastle/sandboxes/docker";
 
 // ---------------------------------------------------------------------------
+// Debug wrapper — keeps the Docker container alive after an error so you can
+// inspect it manually. Replace docker() with debugDocker() to use it.
+// ---------------------------------------------------------------------------
+
+function debugDocker() {
+  const base = docker();
+  return {
+    ...base,
+    // create: async (options: Parameters<typeof base.create>[0]) => {
+    create: async (options: sandcastle.BindMountCreateOptions) => {
+      // Snapshot existing process listeners so we can identify the ones
+      // docker.js registers (it adds exit/SIGINT/SIGTERM handlers that call
+      // `docker rm -f` — we remove those in close() to keep the container alive).
+      const exitBefore = new Set(process.listeners("exit"));
+      const sigintBefore = new Set(process.listeners("SIGINT"));
+      const sigtermBefore = new Set(process.listeners("SIGTERM"));
+
+      const handle = await base.create(options);
+
+      return {
+        ...handle,
+        close: async () => {
+          // Remove the signal handlers docker.js registered, so the container
+          // is not auto-removed when this process exits.
+          for (const l of process.listeners("exit")) {
+            if (!exitBefore.has(l as () => void))
+              process.removeListener("exit", l as () => void);
+          }
+          for (const l of process.listeners("SIGINT")) {
+            if (!sigintBefore.has(l as NodeJS.SignalsListener))
+              process.removeListener("SIGINT", l as NodeJS.SignalsListener);
+          }
+          for (const l of process.listeners("SIGTERM")) {
+            if (!sigtermBefore.has(l as NodeJS.SignalsListener))
+              process.removeListener("SIGTERM", l as NodeJS.SignalsListener);
+          }
+
+          console.log("\n[DEBUG] Container kept alive for inspection.");
+          console.log("[DEBUG] Find it:  docker ps | grep sandcastle");
+          console.log("[DEBUG] Exec in:  docker exec -it <id> bash");
+          console.log(
+            "[DEBUG] Inspect:  find /home/agent -name '*.jsonl' 2>/dev/null",
+          );
+          console.log("[DEBUG] Cleanup:  docker rm -f <id>\n");
+        },
+      };
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Configuration
 // ---------------------------------------------------------------------------
 
