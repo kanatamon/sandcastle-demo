@@ -1,9 +1,15 @@
 {
   "name": "sandcastle-demo",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Basic TypeScript template with Elysia.js",
+  "main": "src/index.ts",
   "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "ci": "npm run typecheck && npm run test",
     "sandcastle": "npx tsx .sandcastle/main.mts"
   },
   "keywords": [],
@@ -11,6 +17,13 @@
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
-    "@ai-hero/sandcastle": "^0.5.6"
+    "@ai-hero/sandcastle": "^0.5.6",
+    "@types/bun": "^1.3.13",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.5"
+  },
+  "dependencies": {
+    "elysia": "^1.4.28"
   }
 }
